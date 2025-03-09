@@ -20,12 +20,7 @@ class LLMScoring:
         torch.set_num_threads(8)
 
         # Add CPU optimization configurations
-        self.model = AutoModelForCausalLM.from_pretrained(
-            model_path,
-            low_cpu_mem_usage=True,
-            torch_dtype=torch.float32,
-            device_map='cpu'
-        )
+        self.model = AutoModelForCausalLM.from_pretrained(model_path)
         self.device = device
         self.model.to(self.device)
         self.scoring_details_dir = path.join('learning_strategies_scoring', 'scoring_details')
