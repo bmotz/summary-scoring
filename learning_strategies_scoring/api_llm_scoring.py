@@ -15,11 +15,7 @@ class LLMScoring:
         self.tokenizer = AutoTokenizer.from_pretrained(model_path, padding_side='left')
         self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
 
-        # Set thread count for CPU optimization
-        torch.backends.cpu.num_threads = 8
-        torch.set_num_threads(8)
-
-        # Add CPU optimization configurations
+        # Load model and move to specified device
         self.model = AutoModelForCausalLM.from_pretrained(model_path)
         self.device = device
         self.model.to(self.device)
