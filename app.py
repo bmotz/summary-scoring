@@ -6,7 +6,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Initialize with CPU
-device = "cpu"
+device = "cuda"
 
 # Initialize the scorer with your model
 scorer = LLMScoring('readerbench/qwen2_1.5b_scoring_se_ta_su_pa_v3', device=device)
