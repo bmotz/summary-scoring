@@ -1,25 +1,21 @@
 import torch
-import torch.backends.cpu
-from transformers import AutoTokenizer, AutoModelForCausalLM
 import json
 from os import path
+from vllm import LLM
+from vllm.sampling_params import SamplingParams
 
 class LLMScoring:
-    def __init__(self, model_path, device):
+    def __init__(self, model_path):
         """
         model_path: str
             Path to the model to be used for scoring
         device: str
             Device to run the model on. 'cuda' for GPU, 'cpu' for CPU, 'mps' for Mac GPU
         """
-        self.tokenizer = AutoTokenizer.from_pretrained(model_path, padding_side='left')
-        self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
-
-        # Load model and move to specified device
-        self.model = AutoModelForCausalLM.from_pretrained(model_path)
-        self.device = device
-        self.model.to(self.device)
+        
+        self.model = LLM(model=model_path, dtype=torch.bfloat16, max_model_len=4096, gpu_memory_utilization=0.3, enable_prefix_caching=True)
         self.scoring_details_dir = path.join('learning_strategies_scoring', 'scoring_details')
+        self.params = SamplingParams(temperature=0, max_tokens=300)
     
     def generate_response(self, formatted_prompt):
         """
@@ -29,32 +25,10 @@ class LLMScoring:
         Returns:
             str: Generated response
         """
-        model_inputs = self.tokenizer(
-            [formatted_prompt], 
-            return_tensors='pt', 
-            padding='longest', 
-            truncation=True, 
-            max_length=1024 # Reduced from 2048*2
-        ).to(self.device)
-
-        generated_ids = self.model.generate(
-            input_ids=model_inputs.input_ids,
-            attention_mask=model_inputs.attention_mask,
-            max_new_tokens=100, # Reduced from 300
-            pad_token_id=self.tokenizer.pad_token_id,
-            do_sample=False,
-            num_beams=1,
-            top_p=None,
-            top_k=None,
-            temperature=None,
-        )
-        generated_ids = [
-            output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
-        ]
-
-        response = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
-
-        return response[0]
+        messages = [{"role": "user", "content": formatted_prompt}]
+        response = self.model.chat(messages, self.params)
+        
+        return response[0].outputs[0].text
     
     def extract_score_from_response(self, response):
         """
@@ -90,13 +64,14 @@ class LLMScoring:
             str: Scoring rubric prompt
         """
     
+        task_prompt = scoring_details['task']
         scoring_rubric_prompt = ""
         for _, dict in scoring_details['scoring_rubric'].items():
             descriptions = '\n'.join([f"- - {dict['scores'][num]}: {dict['scores_description'][num]}" for num in dict['scores']])
             scoring_rubric_prompt += f"- {dict['name']}:\n{descriptions}\n"
         scoring_rubric_prompt = scoring_rubric_prompt[:-1]
 
-        return scoring_rubric_prompt
+        return task_prompt, scoring_rubric_prompt
 
 
     def prepare_prompt(self, data, task):
@@ -114,32 +89,28 @@ class LLMScoring:
 
         if task == 'selfexplanation':
             if 'context' not in data or 'target_sentence' not in data or 'student_response' not in data:
-                raise ValueError('Data must contain context, target_sentence and student_response fields')
+                raise ValueError('Data must contain context, target_sentence, and student_response fields')
             
             scoring_details = json.load(open(path.join(self.scoring_details_dir, 'selfexplanation_thinkaloud_full_se.json'), 'r'))
-            task_prompt = scoring_details['task']
-            scoring_rubric_prompt = self.prepare_scoring_rubric_prompt(scoring_details)
+            task_prompt, scoring_rubric_prompt = self.prepare_scoring_rubric_prompt(scoring_details)
 
             prompt = f"{scoring_start_prompt}\n\n### Task description: {task_prompt}\n\n- Context: {data['context']}\n\n- Phrase: {data['target_sentence']}\n\n### Execution: {data['student_response']}\n\n### Scoring rubric:\n{scoring_rubric_prompt}"
 
         elif task == 'thinkaloud':
             if 'context' not in data or 'target_sentence' not in data or 'student_response' not in data:
-                raise ValueError('Data must contain context, target_sentence and student_response fields')
+                raise ValueError('Data must contain context, target_sentence, and student_response fields')
 
             scoring_details = json.load(open(path.join(self.scoring_details_dir, 'selfexplanation_thinkaloud_full_ta.json'), 'r'))
-            task_prompt = scoring_details['task']
-            scoring_rubric_prompt = self.prepare_scoring_rubric_prompt(scoring_details)
+            task_prompt, scoring_rubric_prompt = self.prepare_scoring_rubric_prompt(scoring_details)
 
             prompt = f"{scoring_start_prompt}\n\n### Task description: {task_prompt}\n\n- Context: {data['context']}\n\n- Phrase: {data['target_sentence']}\n\n### Execution: {data['student_response']}\n\n### Scoring rubric:\n{scoring_rubric_prompt}"
 
         elif task == 'summary':
-            if 'context' not in data or 'question' not in data or 'student_response' not in data:
-                raise ValueError('Data must contain context, question and student_response fields')
+            if 'context' not in data or 'student_response' not in data:
+                raise ValueError('Data must contain context and student_response fields')
 
-            scoring_details = json.load(open(path.join(self.scoring_details_dir, 'summaries_classe.json'), 'r'))
-            scoring_rubric_prompt = self.prepare_scoring_rubric_prompt(scoring_details)
-
-            task_prompt = data['question']
+            scoring_details = json.load(open(path.join(self.scoring_details_dir, 'summaries_aloe.json'), 'r'))
+            task_prompt, scoring_rubric_prompt = self.prepare_scoring_rubric_prompt(scoring_details)
 
             prompt = f"{scoring_start_prompt}\n\n### Task description: {task_prompt}\n\n- Context: {data['context']}\n\n### Execution: {data['student_response']}\n\n### Scoring rubric:\n{scoring_rubric_prompt}"
         
@@ -148,12 +119,11 @@ class LLMScoring:
                 raise ValueError('Data must contain target_sentence and student_response fields')
 
             scoring_details = json.load(open(path.join(self.scoring_details_dir, 'paraphrasing_ulpc.json'), 'r'))
-            task_prompt = scoring_details['task']
-            scoring_rubric_prompt = self.prepare_scoring_rubric_prompt(scoring_details)
+            task_prompt, scoring_rubric_prompt = self.prepare_scoring_rubric_prompt(scoring_details)
 
             prompt = f"{scoring_start_prompt}\n\n### Task description: {task_prompt}\n\n- Sentence: {data['target_sentence']}\n\n### Execution: {data['student_response']}\n\n### Scoring rubric:\n{scoring_rubric_prompt}"
 
-        return f"{prompt}\n\n### Response:"
+        return prompt
 
     def score(self, data, task):
         """
