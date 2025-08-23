@@ -12,7 +12,6 @@ startup_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 def startup_info():
     return f"App started at: {startup_time}"
 
-
 # Initialize the scorer
 scorer = LLMScoring('upb-nlp/llama32_3b_scoring_all_tasks')
 
@@ -51,4 +50,5 @@ def score_task(task):
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5000)
+
 
