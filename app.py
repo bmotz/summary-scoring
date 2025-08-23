@@ -1,9 +1,17 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from learning_strategies_scoring.api_llm_scoring import LLMScoring
+import datetime
 
 app = Flask(__name__)
 CORS(app)
+
+# Startup info
+startup_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+@app.route('/startup-info')
+def startup_info():
+    return f"App started at: {startup_time}"
+
 
 # Initialize the scorer
 scorer = LLMScoring('upb-nlp/llama32_3b_scoring_all_tasks')
@@ -43,3 +51,4 @@ def score_task(task):
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5000)
+
