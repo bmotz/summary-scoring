@@ -13,7 +13,14 @@ class LLMScoring:
             Device to run the model on. 'cuda' for GPU, 'cpu' for CPU, 'mps' for Mac GPU
         """
         
-        self.model = LLM(model=model_path, dtype=torch.bfloat16, max_model_len=4096, gpu_memory_utilization=0.3, enable_prefix_caching=True)
+        self.model = LLM(
+            model=model_path, 
+            dtype=torch.bfloat16, 
+            max_model_len=4096, 
+            gpu_memory_utilization=0.8,
+            tensor_parallel_size=2, 
+            enable_prefix_caching=True
+        )
         self.scoring_details_dir = path.join('learning_strategies_scoring', 'scoring_details')
         self.params = SamplingParams(temperature=0, max_tokens=300)
     
