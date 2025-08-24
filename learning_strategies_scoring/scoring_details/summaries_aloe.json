@@ -1,0 +1,133 @@
+{
+    "task": "Summarize the following text.",
+    "scoring_rubric_list": [
+        "Main.Point",
+        "Details",
+        "Cohesion",
+        "Objective.Language",
+        "Wording.Para",
+        "Lang..Bey..ST",
+        "Summ..Length"
+    ],
+    "scoring_rubric": {
+        "Main.Point": {
+            "name": "Main Idea",
+            "scores": {
+                "0": "Not attempted",
+                "1": "Poor",
+                "2": "Fair",
+                "3": "Good",
+                "4": "Excellent"
+            },
+            "scores_description": {
+                "0": "This task seems not attempted.",
+                "1": "Main idea is not linked to central topic.",
+                "2": "Main idea is linked to central topic but there is no topic sentence to bring ideas together.",
+                "3": "Main idea is linked to central topic and there is a topic sentence that states some aspect of the content.",
+                "4": "Main idea is linked to central topic and has a topic sentence that states the main idea."
+            }
+        },
+        "Details": {
+            "name": "Details",
+            "scores": {
+                "0": "Not attempted",
+                "1": "Poor",
+                "2": "Fair",
+                "3": "Good",
+                "4": "Excellent"
+            },
+            "scores_description": {
+                "0": "This task seems not attempted.",
+                "1": "Statements are not related to the passage.",
+                "2": "Some key information from the passage is included, but important ideas are missing.",
+                "3": "Most key information from the passage is included, but some ideas may be irrelevant or inaccurate.",
+                "4": "All key information in the passage is included without irrelevant ideas."
+            }
+        },
+        "Cohesion": {
+            "name": "Cohesion",
+            "scores": {
+                "0": "Not attempted",
+                "1": "Poor",
+                "2": "Fair",
+                "3": "Good",
+                "4": "Excellent"
+            },
+            "scores_description": {
+                "0": "This task seems not attempted.",
+                "1": "Ideas are randomly presented and do not link to each other.",
+                "2": "Some ideas link to each other.",
+                "3": "Most ideas are logically presented.",
+                "4": "All ideas are logically presented."
+            }
+        },
+        "Objective.Language": {
+            "name": "Objective language",
+            "scores": {
+                "0": "Not attempted",
+                "1": "Poor",
+                "2": "Fair",
+                "3": "Good",
+                "4": "Excellent"
+            },
+            "scores_description": {
+                "0": "This task seems not attempted.",
+                "1": "The language used is not objective.",
+                "2": "Some of the language used is objective.",
+                "3": "Most of the language used is objective.",
+                "4": "All of the language used is objective."
+            }
+        },
+        "Wording.Para": {
+            "name": "Wording",
+            "scores": {
+                "0": "Not attempted",
+                "1": "Poor",
+                "2": "Fair",
+                "3": "Good",
+                "4": "Excellent"
+            },
+            "scores_description": {
+                "0": "This task seems not attempted.",
+                "1": "Summary shows a heavy reliance on verbatim copying of source language.",
+                "2": "Summary shows some use of original wording, but there are examples of verbatim or near-copy of source language.",
+                "3": "Summary shows evidence of appropriate levels of paraphrasing.",
+                "4": "Summary shows substantial evidence of appropriate paraphrasing use."
+            }
+        },
+        "Lang..Bey..ST": {
+            "name": "Language beyond source text",
+            "scores": {
+                "0": "Not attempted",
+                "1": "Poor",
+                "2": "Fair",
+                "3": "Good",
+                "4": "Excellent"
+            },
+            "scores_description": {
+                "0": "This task seems not attempted.",
+                "1": "Summary shows a very basic understanding of lexical and syntactic structures.",
+                "2": "Summary shows an understanding of lexical and syntactic structures.",
+                "3": "Summary shows an appropriate range of lexical and syntactic structures.",
+                "4": "Summary shows an excellent range of lexical and syntactic structures."
+            }
+        },
+        "Summ..Length": {
+            "name": "Summary Length",
+            "scores": {
+                "0": "Not attempted",
+                "1": "Poor",
+                "2": "Fair",
+                "3": "Good",
+                "4": "Excellent"
+            },
+            "scores_description": {
+                "0": "This task seems not attempted.",
+                "1": "The summary is too short.",
+                "2": "The summary is shorter than the appropriate size.",
+                "3": "The summary is the appropriate size but can be improved.",
+                "4": "The summary has the best size."
+            }
+        }
+    }
+}
