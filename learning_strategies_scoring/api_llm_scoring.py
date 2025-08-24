@@ -3,6 +3,11 @@ import json
 from os import path
 from vllm import LLM
 from vllm.sampling_params import SamplingParams
+import os
+
+# Force vLLM to not use background processes
+os.environ['VLLM_USE_V1'] = '0'
+os.environ['VLLM_WORKER_MULTIPROC_METHOD'] = 'spawn'
 
 class LLMScoring:
     def __init__(self, model_path):
@@ -17,9 +22,11 @@ class LLMScoring:
             model=model_path, 
             dtype=torch.bfloat16, 
             max_model_len=4096, 
-            gpu_memory_utilization=0.8,
-            tensor_parallel_size=2, 
-            enable_prefix_caching=True
+            gpu_memory_utilization=0.7,
+            tensor_parallel_size=1,
+            enforce_eager=True,  # Disable CUDA graphs
+            enable_prefix_caching=False,  # Disable to reduce complexity
+            disable_custom_all_reduce=True  # Disable custom operations
         )
         self.scoring_details_dir = path.join('learning_strategies_scoring', 'scoring_details')
         self.params = SamplingParams(temperature=0, max_tokens=300)
