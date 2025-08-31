@@ -5,28 +5,31 @@ from vllm import LLM
 from vllm.sampling_params import SamplingParams
 import os
 
-# Force vLLM to not use background processes
+# Force vLLM V0 engine
 os.environ['VLLM_USE_V1'] = '0'
-os.environ['VLLM_WORKER_MULTIPROC_METHOD'] = 'spawn'
+
+# Essential NCCL settings for network compatibility
+os.environ['NCCL_SOCKET_IFNAME'] = 'lo'
+os.environ['NCCL_P2P_DISABLE'] = '1'
+os.environ['NCCL_IB_DISABLE'] = '1'
+os.environ['NCCL_NET_GDR_LEVEL'] = '0'
 
 class LLMScoring:
     def __init__(self, model_path):
         """
         model_path: str
             Path to the model to be used for scoring
-        device: str
-            Device to run the model on. 'cuda' for GPU, 'cpu' for CPU, 'mps' for Mac GPU
         """
         
         self.model = LLM(
             model=model_path, 
             dtype=torch.bfloat16, 
             max_model_len=4096, 
-            gpu_memory_utilization=0.7,
-            tensor_parallel_size=1,
-            enforce_eager=True,  # Disable CUDA graphs
-            enable_prefix_caching=False,  # Disable to reduce complexity
-            disable_custom_all_reduce=True  # Disable custom operations
+            gpu_memory_utilization=0.4,
+            tensor_parallel_size=2,      # Enable both GPUs
+            enforce_eager=True, 
+            enable_prefix_caching=False, 
+            disable_custom_all_reduce=True
         )
         self.scoring_details_dir = path.join('learning_strategies_scoring', 'scoring_details')
         self.params = SamplingParams(temperature=0, max_tokens=300)
