@@ -5,9 +5,6 @@ from vllm import LLM
 from vllm.sampling_params import SamplingParams
 import os
 
-# Force vLLM V0 engine
-os.environ['VLLM_USE_V1'] = '0'
-
 # Essential NCCL settings for network compatibility
 os.environ['NCCL_SOCKET_IFNAME'] = 'lo'
 os.environ['NCCL_P2P_DISABLE'] = '1'
@@ -25,7 +22,7 @@ class LLMScoring:
             model=model_path, 
             dtype=torch.bfloat16, 
             max_model_len=4096, 
-            gpu_memory_utilization=0.4,
+            gpu_memory_utilization=0.9,
             tensor_parallel_size=2,      # Enable both GPUs
             enforce_eager=True, 
             enable_prefix_caching=False, 
