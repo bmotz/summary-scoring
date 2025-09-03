@@ -22,6 +22,16 @@ def get_scorer():
         scorer = LLMScoring('upb-nlp/llama32_3b_scoring_all_tasks')
     return scorer
 
+@app.route('/', methods=['OPTIONS'])
+@app.route('/score/<task>', methods=['OPTIONS'])
+def handle_options(task=None):
+    """Handle preflight CORS requests."""
+    return '', 204, {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+    }
+
 @app.route('/', methods=['POST'])
 def score_summary():
     args = request.json
@@ -61,3 +71,4 @@ def score_task(task):
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5000)
+
