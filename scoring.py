@@ -69,6 +69,39 @@ def score_task(task):
     response = jsonify(prediction)
     return response, 200
 
+@app.route('/confidence', methods=['OPTIONS'])
+def handle_confidence_options():
+    """Handle preflight CORS requests for confidence endpoint."""
+    return '', 204, {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+    }
+
+@app.route('/confidence', methods=['POST'])
+def score_summary_with_confidence():
+    """Score summary task with confidence metrics"""
+    args = request.json
+    
+    # Check if the request has the old format (with 'question' field)
+    if 'question' in args:
+        # Remove 'question' field
+        args_filtered = {k: v for k, v in args.items() if k != 'question'}
+    else:
+        args_filtered = args
+    
+    try:
+        # Get scorer only when needed
+        scorer = get_scorer()
+        result = scorer.score_with_confidence(args_filtered, 'summary')
+    except ValueError as e:
+        return str(e), 400
+    except Exception as e:
+        # Handle cases where confidence scoring might fail
+        return f"Confidence scoring error: {str(e)}", 500
+    
+    response = jsonify(result)
+    return response, 200
+
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5000)
-
